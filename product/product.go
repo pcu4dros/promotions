@@ -14,7 +14,25 @@ type Product struct {
 	Price    Price  `json:"price"`
 }
 
-func (p *Product) ApplyDiscount(percentage int) *Product {
-	// TODO: Apply discounts logic goes here
-	return &Product{}
+func (p *Product) CalculateDiscount() int {
+	if p.Category == "boots" && p.Sku == "000003" {
+		return 30
+	}
+	if p.Category == "boots" {
+		return 30
+	}
+	if p.Sku == "000003" {
+		return 15
+	}
+	return 0
+}
+
+func (p *Price) ApplyDiscount(percentage int) {
+	p.Final = p.Original - (p.Original*percentage)/100
+	switch percentage {
+	case 30:
+		p.DiscountPercentage = "30%"
+	case 15:
+		p.DiscountPercentage = "15%"
+	}
 }
