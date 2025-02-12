@@ -1,25 +1,31 @@
-package product
+package promotion
 
 import (
+	"bytes"
+	"promotions/internal/product"
 	"testing"
 )
 
-func TestDiscounts(t *testing.T) {
-	product := &Product{
+func TestDiscounter(t *testing.T) {
+	rawProduct := &product.Product{
 		Sku:      "000002",
 		Name:     "Dummy product",
 		Category: "sandals",
-		Price: Price{
+		Price: product.Price{
 			Original:           89000,
 			Final:              89000,
 			DiscountPercentage: "",
-			Currency:           "EUR",
 		},
 	}
 
+	discounts := `{"category_discounts": {"boots":30}, "sku_discounts": {"000003":15}}`
+	discounter, err := NewDiscounter(bytes.NewReader([]byte(discounts)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	t.Run("returns a Product without discount", func(t *testing.T) {
-		discount := product.CalculateDiscount()
-		product.Price.ApplyDiscount(discount)
+		product := discounter.ApplyDiscount(rawProduct)
 
 		assertPrice(t, product.Price.Original, 89000)
 		assertPrice(t, product.Price.Final, 89000)
@@ -27,9 +33,8 @@ func TestDiscounts(t *testing.T) {
 	})
 
 	t.Run("returns a Product with 30% discount", func(t *testing.T) {
-		product.Category = "boots"
-		discount := product.CalculateDiscount()
-		product.Price.ApplyDiscount(discount)
+		rawProduct.Category = "boots"
+		product := discounter.ApplyDiscount(rawProduct)
 
 		assertPrice(t, product.Price.Original, 89000)
 		assertPrice(t, product.Price.Final, 62300)
@@ -37,10 +42,9 @@ func TestDiscounts(t *testing.T) {
 	})
 
 	t.Run("returns a Product with 15% discount", func(t *testing.T) {
-		product.Sku = "000003"
-		product.Category = "sandals"
-		discount := product.CalculateDiscount()
-		product.Price.ApplyDiscount(discount)
+		rawProduct.Sku = "000003"
+		rawProduct.Category = "sandals"
+		product := discounter.ApplyDiscount(rawProduct)
 
 		assertPrice(t, product.Price.Original, 89000)
 		assertPrice(t, product.Price.Final, 75650)
@@ -49,10 +53,9 @@ func TestDiscounts(t *testing.T) {
 
 	// When multiple discounts collide, the bigger discount must be applied.
 	t.Run("returns a product with 30% discount, collision (bigger is applied)", func(t *testing.T) {
-		product.Sku = "000003"
-		product.Category = "boots"
-		discount := product.CalculateDiscount()
-		product.Price.ApplyDiscount(discount)
+		rawProduct.Sku = "000003"
+		rawProduct.Category = "boots"
+		product := discounter.ApplyDiscount(rawProduct)
 
 		assertPrice(t, product.Price.Original, 89000)
 		assertPrice(t, product.Price.Final, 62300)
