@@ -12,39 +12,45 @@ import (
 
 func main() {
 	ctx := context.Background()
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	opts := &slog.HandlerOptions{Level: slog.LevelInfo}
+	logger := slog.New(slog.NewTextHandler(os.Stderr, opts))
 
 	db := sqlite.Connect(":memory:")
 	pr := product.NewSQLiteRepository(db)
 
 	// This is a helper function to initialize the DB with the tables and some rows
-	err := initDB(ctx, pr)
+	err := initDB(ctx, logger, pr)
 	if err != nil {
 		fmt.Println("initializing the DB", "in", err)
 		panic(1)
 	}
 	ps := product.NewService(&pr)
 
+	// Initialize a simple http.MuxServer server
 	srv := http.NewServer(logger, ctx, ps)
 	http.Run(srv, logger)
 }
 
-func initDB(ctx context.Context, pr product.SQLiteRepository) error {
+func initDB(ctx context.Context, log *slog.Logger, pr product.SQLiteRepository) error {
 	err := pr.InitProducts(ctx)
 	if err != nil {
-		fmt.Println("creating products table", "with", err)
+		log.Error("creating products table", "error", err)
+		panic(0)
 	}
 	err = pr.InitDiscountRules(ctx)
 	if err != nil {
-		fmt.Println("creating discountRules table", "with", err)
+		log.Error("creating discountRules table", "error", err)
+		panic(0)
 	}
 	err = pr.SeedProducts(ctx)
 	if err != nil {
-		fmt.Println("adding sample products", "with", err)
+		log.Error("adding sample products", "error", err)
+		panic(0)
 	}
 	err = pr.SeedDRules(ctx)
 	if err != nil {
-		fmt.Println("adding sample discount rules", "with", err)
+		log.Error("adding sample discount rules", "error", err)
+		panic(0)
 	}
 	return nil
 }

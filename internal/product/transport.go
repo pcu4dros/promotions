@@ -3,6 +3,7 @@ package product
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -22,7 +23,7 @@ type ProductResponse struct {
 	Price    PriceResponse `json:"price"`
 }
 
-func ConvertToProductResponse(products []EnhancedProduct) map[string][]ProductResponse {
+func toProductResponse(products []EnhancedProduct) map[string][]ProductResponse {
 	var productResponses []ProductResponse
 	for _, p := range products {
 		var discount *string
@@ -63,13 +64,11 @@ func HandleProduct(ctx context.Context, log *slog.Logger, pservice Service) http
 		}
 
 		if price < 0 {
+			log.Error("Invalid priceLessThan filter", "error", fmt.Errorf("negative value"))
 			http.Error(w, "Invalid priceLessThan filter", http.StatusBadRequest)
 			return
 		}
 
-		log.Info("price ", "with: ", strconv.Itoa(price))
-
-		log.Info("category ", "with: ", category)
 		filter := Filter{
 			Category: category,
 			Price:    price,
@@ -77,17 +76,22 @@ func HandleProduct(ctx context.Context, log *slog.Logger, pservice Service) http
 
 		products, err := pservice.List(ctx, filter)
 		if err != nil {
-			log.Error("obtaining the products", "with", err)
+			log.Error("obtaining the products", "error", err)
 			http.Error(w, "Error fetching products", http.StatusInternalServerError)
 			return
 		}
 
-		response := ConvertToProductResponse(products)
+		// Ensure at most 5 products, this could be improved to add a proper paginator
+		if len(products) > 5 {
+			products = products[:5]
+		}
+
+		response := toProductResponse(products)
 
 		marshaled, err := json.MarshalIndent(response, "", "   ")
 		if err != nil {
 			log.Error("marshaling reponse", "with", err)
-			http.Error(w, "obtaining the product response", http.StatusInternalServerError)
+			http.Error(w, "Error fetching the products", http.StatusInternalServerError)
 			return
 		}
 

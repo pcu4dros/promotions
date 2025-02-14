@@ -26,12 +26,8 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]EnhancedProduct, e
 		return nil, fmt.Errorf("obtaining the discount rules from the repo : %v", err)
 	}
 
-	fmt.Println("filters: ", filter)
-
 	var products []Product
 	products, err = s.repo.List(ctx, filter)
-
-	fmt.Println("products: ", products)
 	if err != nil {
 		return nil, fmt.Errorf("getting the products: %w", err)
 	}
