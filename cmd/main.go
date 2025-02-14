@@ -20,14 +20,17 @@ func main() {
 	}
 
 	ps := product.NewService(&pr)
-
-	products, err := ps.List(ctx)
+	filter := product.Filter{
+		Category: "boots",
+		Price:    0,
+	}
+	products, err := ps.List(ctx, filter)
 	if err != nil {
 		fmt.Println("obtaining products from DB", "in", err)
 		panic(1)
 	}
 	fmt.Println(products)
-	drules, err := ps.GetDiscountRules(ctx)
+	drules, err := pr.GetDiscountRules(ctx)
 	if err != nil {
 		fmt.Println("obtaining discount rules from DB", "in", err)
 		panic(1)

@@ -18,29 +18,45 @@ func NewSQLiteRepository(db *sql.DB) SQLiteRepository {
 	}
 }
 
-func (s *SQLiteRepository) List(ctx context.Context) ([]Product, error) {
-	rows, err := s.db.QueryContext(ctx,
-		`SELECT sku, name, category, price FROM products`)
+func (s *SQLiteRepository) queryProducts(ctx context.Context, query string, args ...any) ([]Product, error) {
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("obtaining the products from the DB: %w", err)
+		return nil, fmt.Errorf("failed to query products: %w", err)
 	}
 	defer rows.Close()
 
 	var products []Product
-
 	for rows.Next() {
 		var p Product
 		if err := rows.Scan(&p.sku, &p.name, &p.category, &p.price); err != nil {
-			return nil, fmt.Errorf("scanning a product row: %w", err)
+			return nil, fmt.Errorf("failed to scan product row: %w", err)
 		}
 		products = append(products, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterating the rows: %w", err)
+		return nil, fmt.Errorf("row iteration error: %w", err)
 	}
 
 	return products, nil
+}
+
+func (s *SQLiteRepository) List(ctx context.Context) ([]Product, error) {
+	return s.queryProducts(ctx, `SELECT sku, name, category, price FROM products`, nil)
+}
+
+func (s *SQLiteRepository) ListByPriceRange(ctx context.Context, min, max int) ([]Product, error) {
+	return s.queryProducts(ctx,
+		`SELECT sku, name, category, price FROM products WHERE price BETWEEN ? AND ?`,
+		min, max,
+	)
+}
+
+func (s *SQLiteRepository) ListByCategory(ctx context.Context, category string) ([]Product, error) {
+	return s.queryProducts(ctx,
+		`SELECT sku, name, category, price FROM products WHERE category = ?`,
+		category,
+	)
 }
 
 func (s *SQLiteRepository) GetDiscountRules(ctx context.Context) ([]DiscountRule, error) {

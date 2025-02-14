@@ -34,7 +34,6 @@ func (d *Discounter) getDiscount(p *Product) (int, string) {
 // Apply a discount percentage to an existing Price
 func (d *Discounter) ApplyDiscount(p *Product) *Price {
 	discount, percentage := d.getDiscount(p)
-	fmt.Println(discount)
 	final := p.price - (p.price*discount)/100
 	price := NewPrice(p.price, final, percentage, "")
 	return price

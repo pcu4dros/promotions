@@ -1,7 +1,5 @@
 package product
 
-import "fmt"
-
 const DefaultCurrency = "EUR"
 
 // DiscountRule represents a condition for applying a discount.
@@ -12,8 +10,8 @@ type DiscountRule struct {
 }
 
 type Filter struct {
-	category string
-	price    int
+	Category string
+	Price    int
 }
 
 type Product struct {
@@ -28,6 +26,13 @@ type Price struct {
 	final    int
 	discount *string
 	currency string
+}
+
+type EnhancedProduct struct {
+	sku      string
+	name     string
+	category string
+	price    Price
 }
 
 func NewDiscountRule(field string, value string, discount int) *DiscountRule {
@@ -47,11 +52,19 @@ func NewProduct(sku string, name string, category string, price int) *Product {
 	}
 }
 
+func NewEnhancedProduct(sku string, name string, category string, price Price) *EnhancedProduct {
+	return &EnhancedProduct{
+		sku:      sku,
+		name:     name,
+		category: category,
+		price:    price,
+	}
+}
+
 func NewPrice(original int, final int, discount string, curr string) *Price {
 	if curr == "" {
 		curr = DefaultCurrency
 	}
-	fmt.Println(original, final, discount, curr)
 	return &Price{
 		original: original,
 		final:    final,

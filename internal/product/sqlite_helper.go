@@ -2,12 +2,11 @@ package product
 
 import (
 	"context"
-	"errors"
 	"fmt"
 )
 
 func (s *SQLiteRepository) InitProducts(ctx context.Context) error {
-	r, err := s.db.ExecContext(ctx,
+	_, err := s.db.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS products (
 			sku TEXT NOT NULL,
 			name TEXT NOT NULL,
@@ -17,9 +16,6 @@ func (s *SQLiteRepository) InitProducts(ctx context.Context) error {
 	)
 	if err != nil {
 		return fmt.Errorf("products table creation failed: %v", err)
-	}
-	if i, err := r.RowsAffected(); err != nil || i > 0 {
-		return errors.New("rows are affected")
 	}
 	return nil
 }
@@ -56,7 +52,7 @@ func (s *SQLiteRepository) SeedProducts(ctx context.Context) error {
 }
 
 func (s *SQLiteRepository) InitDiscountRules(ctx context.Context) error {
-	rd, err := s.db.ExecContext(ctx,
+	_, err := s.db.ExecContext(ctx,
 		`CREATE TABLE IF NOT EXISTS discountRules (
 			field TEXT NOT NULL,
 			value TEXT NOT NULL,
@@ -65,9 +61,6 @@ func (s *SQLiteRepository) InitDiscountRules(ctx context.Context) error {
 	)
 	if err != nil {
 		return fmt.Errorf("DiscountRule table creation failed: %v", err)
-	}
-	if i, err := rd.RowsAffected(); err != nil || i > 0 {
-		return errors.New("rows are affected")
 	}
 	return nil
 }

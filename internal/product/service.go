@@ -15,18 +15,45 @@ func NewService(r Repository) *Service {
 	}
 }
 
-func (s *Service) List(ctx context.Context) ([]Product, error) {
-	products, err := s.repo.List(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("obtaining the products from the store : %v", err)
+func (s *Service) List(ctx context.Context, filter Filter) ([]EnhancedProduct, error) {
+	var drules []DiscountRule
+
+	drules, err := s.repo.GetDiscountRules(ctx)
+	discounter := Discounter{
+		Rules: drules,
 	}
-	return products, nil
+	if err != nil {
+		return nil, fmt.Errorf("obtaining the discount rules from the repo : %v", err)
+	}
+
+	var products []Product
+	switch {
+	case filter.Category != "":
+		products, err = s.repo.ListByCategory(ctx, filter.Category)
+	case filter.Price > 0:
+		products, err = s.repo.ListByPriceRange(ctx, 0, filter.Price)
+	default:
+		products, err = s.repo.List(ctx)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getting the products: %w", err)
+	}
+
+	eproducts := getEproducts(products, discounter, filter)
+	return eproducts, nil
 }
 
-func (s *Service) GetDiscountRules(ctx context.Context) ([]DiscountRule, error) {
-	drules, err := s.repo.GetDiscountRules(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("obtaining the discount rules from the store : %v", err)
+func getEproducts(products []Product, d Discounter, f Filter) []EnhancedProduct {
+	eproducts := make([]EnhancedProduct, 0, len(products))
+	for _, p := range products {
+		var pr *Price
+		if f.Price > 0 {
+			pr = NewPrice(p.price, p.price, "", "")
+		} else {
+			pr = d.ApplyDiscount(&p)
+		}
+		ep := NewEnhancedProduct(p.sku, p.name, p.category, *pr)
+		eproducts = append(eproducts, *ep)
 	}
-	return drules, nil
+	return eproducts
 }
