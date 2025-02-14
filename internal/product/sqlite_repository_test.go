@@ -12,7 +12,6 @@ import (
 func setupTestDB(t *testing.T) (*SQLiteRepository, context.Context) {
 	ctx := context.Background()
 	db := sqlite.Connect(":memory:")
-	db.SetMaxOpenConns(1)
 
 	r := NewSQLiteRepository(db)
 	err := r.InitProducts(ctx)
@@ -53,7 +52,7 @@ func TestListByPriceRange(t *testing.T) {
 		max       int
 		wantCount int
 	}{
-		{"range matches two products", 50000, 60000, 1},
+		{"range matches two products", 50000, 72000, 2},
 		{"exact price match", 59000, 59000, 1},
 		{"no matches", 10000, 20000, 0},
 		{"inverted range", 60000, 50000, 0},
