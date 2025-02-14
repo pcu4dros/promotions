@@ -24,16 +24,34 @@ Go to the [Go's official website](https://go.dev/doc/install) and follow the ins
 
 ### 🌐 Run the Application
 
+MacOs or Linux:
+
 ```bash
 make run
+```
+
+Windows:
+
+
+```bash
+go run cmd/main.go
 ```
 
 The API will start on [http://localhost:8080/products](http://localhost:8080/products)
 
 ## How to run the tests
 
+MacOs or Linux:
+
 ```bash
 make test
+```
+
+Windows:
+
+
+```bash
+go test -v ./...
 ```
 
 ## Design Decisions
