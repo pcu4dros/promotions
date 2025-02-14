@@ -84,16 +84,16 @@ makes sense.
 ### 🔧 Why Use Dependency Injection?
 
 - Makes Testing Easy -> We can mock dependencies in unit tests.
-  (as shown in the tests)
+  (e.g service tests)
 - Flexible & Extensible -> Can swap implementations (e.g., replace SQLite with PostgreSQL).
-- Decouples Components -> Each part of the app depends on interfaces,
-  not concrete implementations.
+- Decouples Components -> Each part of the app could depend on interfaces,
+ not concrete implementations.
 
 ### ✨ Why Use Interfaces?
 
 - Abstracts the Database -> The service layer doesn't depend on a specific database.
 - Allows Mocking -> Makes unit testing possible without needing a real database.
-- Future-Proofing -> Can easily replace components without affecting the
+- Future-Proofing -> Can easily replace critical components without affecting the
 rest of the system.
 
 ### 🛠️ Why Start with Fewer External Dependencies?
@@ -113,6 +113,7 @@ rest of the system.
 
 - Implement structured logging using libraries like Zap or Logrus for better
 observability and performance.
+- Add more interfaces if needed to decouple even more the code.
 - Conduct benchmark testing to validate performance and ensure the system efficiently
 handles 200000+ products.
 - Implement pagination for product listings to improve response times and scalability.
