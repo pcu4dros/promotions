@@ -3,7 +3,6 @@ package product
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -30,14 +29,11 @@ func (s *SQLiteRepository) List(ctx context.Context) ([]Product, error) {
 	var products []Product
 
 	for rows.Next() {
-		var sku, name, category string
-		var price int
-
-		if err := rows.Scan(&sku, &name, &category, &price); err != nil {
+		var p Product
+		if err := rows.Scan(&p.sku, &p.name, &p.category, &p.price); err != nil {
 			return nil, fmt.Errorf("scanning a product row: %w", err)
 		}
-		p := NewProduct(sku, name, category, price)
-		products = append(products, *p)
+		products = append(products, p)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -47,51 +43,25 @@ func (s *SQLiteRepository) List(ctx context.Context) ([]Product, error) {
 	return products, nil
 }
 
-func (s *SQLiteRepository) InitProducts(ctx context.Context) error {
-	r, err := s.db.ExecContext(ctx,
-		`CREATE TABLE IF NOT EXISTS products (
-			sku TEXT NOT NULL,
-			name TEXT NOT NULL,
-			category TEXT NOT NULL,
-			price INTEGER NOT NULL
-    );`,
-	)
+func (s *SQLiteRepository) GetDiscountRules(ctx context.Context) ([]DiscountRule, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT field, value, discount FROM discountRules`)
 	if err != nil {
-		return fmt.Errorf("products table creation failed: %v", err)
+		return nil, fmt.Errorf("failed to query discount rules: %w", err)
 	}
-	if i, err := r.RowsAffected(); err != nil || i > 0 {
-		return errors.New("rows are affected")
-	}
-	return nil
-}
+	var drules []DiscountRule
 
-func (s *SQLiteRepository) SeedProducts(ctx context.Context) error {
-	sampleProducts := []Product{
-		*NewProduct("000001", "BV Lean leather ankle boots", "boots", 89000),
-		*NewProduct("000002", "BV Lean leather ankle boots", "boots", 99000),
-		*NewProduct("000003", "Ashlington leather ankle boots", "boots", 71000),
-		*NewProduct("000004", "Naima Embellished leather suede sandals", "sandals", 79500),
-		*NewProduct("000005", "Nathane leather ankle boots", "boots", 59000),
-	}
-
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("transaction failed: %v", err)
-	}
-	defer tx.Rollback()
-	for _, p := range sampleProducts {
-		_, err = tx.Exec(`
-			INSERT OR IGNORE INTO products(sku, name, category, price)
-			VALUES (?, ?, ?, ?);
-		`, p.Sku(), p.Name(), p.Category(), p.Price())
-		if err != nil {
-			return fmt.Errorf("insert failed for %s: %v", p.Sku(), err)
+	for rows.Next() {
+		var dr DiscountRule
+		if err := rows.Scan(&dr.field, &dr.value, &dr.discount); err != nil {
+			return nil, fmt.Errorf("failed to scan discount rule row: %w", err)
 		}
+		drules = append(drules, dr)
 	}
 
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit failed: %v", err)
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row iteration error: %w", err)
 	}
 
-	return nil
+	return drules, nil
 }

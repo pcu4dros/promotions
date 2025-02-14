@@ -1,26 +1,25 @@
-package discount
+package product
 
 import (
 	"fmt"
-	"promotions/internal/product"
 )
 
 type Discounter struct {
 	Rules []DiscountRule
 }
 
-func (d *Discounter) GetDiscount(p *product.Product) (int, string) {
+func (d *Discounter) getDiscount(p *Product) (int, string) {
 	var discounts []int
 	var discount int
 
 	for _, rule := range d.Rules {
 		switch rule.field {
 		case "category":
-			if p.Category() == rule.value {
+			if p.category == rule.value {
 				discounts = append(discounts, rule.discount)
 			}
 		case "sku":
-			if p.Sku() == rule.value {
+			if p.sku == rule.value {
 				discounts = append(discounts, rule.discount)
 			}
 		}
@@ -32,13 +31,16 @@ func (d *Discounter) GetDiscount(p *product.Product) (int, string) {
 	return discount, ""
 }
 
-// Apply a discount percentage to an existing Product
-func (d *Discounter) ApplyDiscount(discount int, p *product.Product) int {
-	discount = p.Price() - (p.Price()*discount)/100
-	return discount
+// Apply a discount percentage to an existing Price
+func (d *Discounter) ApplyDiscount(p *Product) *Price {
+	discount, percentage := d.getDiscount(p)
+	fmt.Println(discount)
+	final := p.price - (p.price*discount)/100
+	price := NewPrice(p.price, final, percentage, "")
+	return price
 }
 
-// getMaxDiscount returns the highest discount percentage.
+// getMaxDiscount returns the highest discount.
 func getMaxDiscount(discounts []int) int {
 	var max int
 	for _, d := range discounts {

@@ -22,3 +22,11 @@ func (s *Service) List(ctx context.Context) ([]Product, error) {
 	}
 	return products, nil
 }
+
+func (s *Service) GetDiscountRules(ctx context.Context) ([]DiscountRule, error) {
+	drules, err := s.repo.GetDiscountRules(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("obtaining the discount rules from the store : %v", err)
+	}
+	return drules, nil
+}
