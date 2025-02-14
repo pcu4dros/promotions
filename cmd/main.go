@@ -3,39 +3,30 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+	"promotions/internal/http"
 	"promotions/internal/product"
 	"promotions/internal/sqlite"
 )
 
 func main() {
 	ctx := context.Background()
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 
 	db := sqlite.Connect(":memory:")
 	pr := product.NewSQLiteRepository(db)
 
+	// This is a helper function to initialize the DB with the tables and some rows
 	err := initDB(ctx, pr)
 	if err != nil {
 		fmt.Println("initializing the DB", "in", err)
 		panic(1)
 	}
-
 	ps := product.NewService(&pr)
-	filter := product.Filter{
-		Category: "boots",
-		Price:    0,
-	}
-	products, err := ps.List(ctx, filter)
-	if err != nil {
-		fmt.Println("obtaining products from DB", "in", err)
-		panic(1)
-	}
-	fmt.Println(products)
-	drules, err := pr.GetDiscountRules(ctx)
-	if err != nil {
-		fmt.Println("obtaining discount rules from DB", "in", err)
-		panic(1)
-	}
-	fmt.Println(drules)
+
+	srv := http.NewServer(logger, ctx, ps)
+	http.Run(srv, logger)
 }
 
 func initDB(ctx context.Context, pr product.SQLiteRepository) error {

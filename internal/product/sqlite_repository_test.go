@@ -33,7 +33,7 @@ func TestList(t *testing.T) {
 		if err != nil {
 			t.Fatalf("adding sample products = %v", err)
 		}
-		products, err := r.List(ctx)
+		products, err := r.List(ctx, Filter{})
 		if err != nil {
 			t.Fatalf("List() error = %v", err)
 		}
@@ -60,7 +60,7 @@ func TestListByPriceRange(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			products, err := repo.ListByPriceRange(ctx, tc.min, tc.max)
+			products, err := repo.List(ctx, Filter{Price: tc.max, Category: ""})
 			if err != nil {
 				t.Fatalf("ListByPriceRange() error = %v", err)
 			}
@@ -94,7 +94,7 @@ func TestListByCategory(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			products, err := repo.ListByCategory(ctx, tc.category)
+			products, err := repo.List(ctx, Filter{Price: 0, Category: tc.category})
 			if err != nil {
 				t.Fatalf("ListByCategory() error = %v", err)
 			}

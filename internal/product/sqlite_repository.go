@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -41,22 +42,26 @@ func (s *SQLiteRepository) queryProducts(ctx context.Context, query string, args
 	return products, nil
 }
 
-func (s *SQLiteRepository) List(ctx context.Context) ([]Product, error) {
-	return s.queryProducts(ctx, `SELECT sku, name, category, price FROM products`, nil)
-}
+func (s *SQLiteRepository) List(ctx context.Context, filter Filter) ([]Product, error) {
+	query := `SELECT sku, name, category, price FROM products`
+	var args []interface{}
+	var conditions []string
 
-func (s *SQLiteRepository) ListByPriceRange(ctx context.Context, min, max int) ([]Product, error) {
-	return s.queryProducts(ctx,
-		`SELECT sku, name, category, price FROM products WHERE price BETWEEN ? AND ?`,
-		min, max,
-	)
-}
+	// Add conditions dynamically
+	if filter.Category != "" {
+		conditions = append(conditions, "category = ?")
+		args = append(args, filter.Category)
+	}
+	if filter.Price > 0 {
+		conditions = append(conditions, "price BETWEEN ? AND ?")
+		args = append(args, 0, filter.Price)
+	}
 
-func (s *SQLiteRepository) ListByCategory(ctx context.Context, category string) ([]Product, error) {
-	return s.queryProducts(ctx,
-		`SELECT sku, name, category, price FROM products WHERE category = ?`,
-		category,
-	)
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	return s.queryProducts(ctx, query, args...)
 }
 
 func (s *SQLiteRepository) GetDiscountRules(ctx context.Context) ([]DiscountRule, error) {

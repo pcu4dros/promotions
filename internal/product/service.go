@@ -26,19 +26,15 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]EnhancedProduct, e
 		return nil, fmt.Errorf("obtaining the discount rules from the repo : %v", err)
 	}
 
+	fmt.Println("filters: ", filter)
+
 	var products []Product
-	switch {
-	case filter.Category != "":
-		products, err = s.repo.ListByCategory(ctx, filter.Category)
-	case filter.Price > 0:
-		products, err = s.repo.ListByPriceRange(ctx, 0, filter.Price)
-	default:
-		products, err = s.repo.List(ctx)
-	}
+	products, err = s.repo.List(ctx, filter)
+
+	fmt.Println("products: ", products)
 	if err != nil {
 		return nil, fmt.Errorf("getting the products: %w", err)
 	}
-
 	eproducts := getEproducts(products, discounter, filter)
 	return eproducts, nil
 }

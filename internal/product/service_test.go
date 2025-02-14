@@ -20,35 +20,21 @@ func (m *mockRepo) GetDiscountRules(ctx context.Context) ([]DiscountRule, error)
 	return m.drules, nil
 }
 
-func (m *mockRepo) List(ctx context.Context) ([]Product, error) {
+func (m *mockRepo) List(ctx context.Context, filter Filter) ([]Product, error) {
 	if m.errorOnList != nil {
 		return nil, m.errorOnList
 	}
-	return m.products, nil
-}
 
-func (m *mockRepo) ListByCategory(ctx context.Context, category string) ([]Product, error) {
-	if m.errorOnList != nil {
-		return nil, m.errorOnList
-	}
 	var filtered []Product
 	for _, p := range m.products {
-		if p.category == category {
-			filtered = append(filtered, p)
+		if filter.Category != "" && p.category != filter.Category {
+			continue
 		}
-	}
-	return filtered, nil
-}
-
-func (m *mockRepo) ListByPriceRange(ctx context.Context, min, max int) ([]Product, error) {
-	if m.errorOnList != nil {
-		return nil, m.errorOnList
-	}
-	var filtered []Product
-	for _, p := range m.products {
-		if p.price >= min && p.price <= max {
-			filtered = append(filtered, p)
+		// Filter by price if provided
+		if filter.Price > 0 && filter.Price <= p.price {
+			continue
 		}
+		filtered = append(filtered, p)
 	}
 	return filtered, nil
 }
@@ -58,7 +44,7 @@ func TestService_List(t *testing.T) {
 	repo := &mockRepo{
 		products: []Product{
 			{sku: "123", name: "Product A", category: "boots", price: 100},
-			{sku: "456", name: "Product B", category: "sandals", price: 50},
+			{sku: "456", name: "Product B", category: "books", price: 50},
 		},
 		drules: []DiscountRule{},
 	}
