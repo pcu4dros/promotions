@@ -2,7 +2,6 @@ package product
 
 import (
 	"context"
-	"fmt"
 	"promotions/internal/sqlite"
 	"testing"
 
@@ -119,7 +118,7 @@ func TestGetDiscountRules(t *testing.T) {
 	t.Run("get all rules", func(t *testing.T) {
 		err := r.SeedDRules(ctx)
 		if err != nil {
-			fmt.Println("adding sample discount rules", "with", err)
+			t.Fatalf("adding sample discount rules = %v", err)
 		}
 		rules, err := r.GetDiscountRules(ctx)
 		if err != nil {

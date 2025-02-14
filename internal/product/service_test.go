@@ -30,7 +30,6 @@ func (m *mockRepo) List(ctx context.Context, filter Filter) ([]Product, error) {
 		if filter.Category != "" && p.category != filter.Category {
 			continue
 		}
-		// Filter by price if provided
 		if filter.Price > 0 && filter.Price <= p.price {
 			continue
 		}

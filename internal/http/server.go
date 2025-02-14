@@ -34,8 +34,7 @@ func headers(w http.ResponseWriter, r *http.Request) {
 }
 
 func Run(mux http.Handler, log *slog.Logger) {
-	// assign a route to a handle products
-	log.Info("starting the server ...")
+	log.Info("Starting the server ...")
 
 	s := &http.Server{
 		Addr:           ":8080",
@@ -44,6 +43,9 @@ func Run(mux http.Handler, log *slog.Logger) {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
+
+	addr := "http://localhost:8080"
+	log.Info("Server started", slog.String("address", addr))
 
 	s.ListenAndServe()
 }
