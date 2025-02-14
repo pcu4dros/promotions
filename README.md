@@ -64,7 +64,7 @@ go test -v ./...
   of requests efficiently and a reasonable number of results (e.g for this case 200000)
 - Easy to Set Up: No external dependencies—just a file-based DB or an in memory db
   pass in the string ":memory:" (this case)
-- Relational: so there is more flexibility working with it
+- SQL: SQL is always your friend when you know the data 🙂 and its structure.
 
 ### 📦 Why a Single product Package?
 
@@ -103,7 +103,7 @@ rest of the system.
   on core functionality.
 - Better Performance -> No unnecessary abstractions slowing things down.
 - More Control -> We can decide when and how to introduce dependencies, rather than
-  being forced into a framework.
+  being forced into a framework. (go has become really strong in this specific area)
 - Easier Maintenance -> Fewer libraries mean fewer breaking changes and dependency
   upgrades in the future.
 - Security Benefits -> Fewer dependencies mean fewer potential vulnerabilities
